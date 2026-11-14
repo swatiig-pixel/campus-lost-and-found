@@ -1,0 +1,30 @@
+<nav class="sidebar" id="student-sidebar">
+  <div class="sidebar-brand">
+    <div class="d-flex align-items-center gap-2">
+      <div class="user-avatar">{{ user.full_name|first|upper|default:user.username|first|upper }}</div>
+      <div>
+        <div class="fw-700 text-primary-campus" style="font-size:.9rem;">{{ user.full_name|default:user.username }}</div>
+        <div class="text-muted-campus" style="font-size:.75rem;">{{ user.department|default:"Student" }}</div>
+      </div>
+    </div>
+  </div>
+  <ul class="sidebar-nav list-unstyled">
+    <li class="nav-section-title">Main</li>
+    <li><a class="nav-link" href="{% url 'dashboard:student_dashboard' %}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
+
+    <li class="nav-section-title">Items</li>
+    <li><a class="nav-link" href="{% url 'lostfound:lost_items' %}"><i class="bi bi-search"></i> Browse Lost Items</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:found_items' %}"><i class="bi bi-bag-check-fill"></i> Browse Found Items</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:report_lost' %}"><i class="bi bi-exclamation-triangle-fill"></i> Report Lost Item</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:report_found' %}"><i class="bi bi-hand-thumbs-up-fill"></i> Report Found Item</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:my_reports' %}"><i class="bi bi-collection-fill"></i> My Reports</a></li>
+
+    <li class="nav-section-title">Claims & Messages</li>
+    <li><a class="nav-link" href="{% url 'lostfound:my_claims' %}"><i class="bi bi-clipboard-check-fill"></i> My Claims</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:messages_inbox' %}"><i class="bi bi-chat-dots-fill"></i> Messages</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:notifications' %}"><i class="bi bi-bell-fill"></i> Notifications</a></li>
+
+    <li class="nav-section-title">Account</li>
+    <li><a class="nav-link" href="{% url 'accounts:profile' %}"><i class="bi bi-person-fill"></i> My Profile</a></li>
+  </ul>
+</nav>

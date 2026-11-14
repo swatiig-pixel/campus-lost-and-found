@@ -1,0 +1,25 @@
+<nav class="sidebar" id="admin-sidebar">
+  <div class="sidebar-brand">
+    <div class="d-flex align-items-center gap-2">
+      <div class="user-avatar" style="background: linear-gradient(135deg,#183153,#e53e3e);">
+        <i class="bi bi-shield-fill-check text-white"></i>
+      </div>
+      <div>
+        <div class="fw-700 text-primary-campus" style="font-size:.9rem;">{{ user.username }}</div>
+        <div class="text-muted-campus" style="font-size:.75rem;">Administrator</div>
+      </div>
+    </div>
+  </div>
+  <ul class="sidebar-nav list-unstyled">
+    <li class="nav-section-title">Overview</li>
+    <li><a class="nav-link" href="{% url 'dashboard:admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+
+    <li class="nav-section-title">Management</li>
+    <li><a class="nav-link" href="{% url 'dashboard:admin_students' %}"><i class="bi bi-people-fill"></i> Students</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:admin_items' %}"><i class="bi bi-box-seam-fill"></i> Item Reports</a></li>
+    <li><a class="nav-link" href="{% url 'lostfound:admin_claims' %}"><i class="bi bi-clipboard-check-fill"></i> Claims</a></li>
+
+    <li class="nav-section-title">System</li>
+    <li><a class="nav-link" href="/django-admin/"><i class="bi bi-gear-fill"></i> Django Admin</a></li>
+  </ul>
+</nav>

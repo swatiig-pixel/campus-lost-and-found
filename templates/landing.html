@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Campus Lost & Found — Find What You've Lost{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block full_page %}
+<!-- ── Hero ──────────────────────────────────────────────────── -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-content">
+      <span class="badge mb-3" style="background:rgba(255,255,255,.15);color:#fff;font-size:.85rem;padding:6px 16px;">
+        <i class="bi bi-mortarboard-fill me-1"></i> Official Campus Platform
+      </span>
+      <h1>Lost Something on Campus?<br><span style="color:#a8e6df;">We'll Help You Find It.</span></h1>
+      <p>Report lost items, discover found belongings, and connect with fellow students — all in one secure place.</p>
+      <div class="d-flex flex-wrap gap-3 justify-content-center">
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard:student_dashboard' %}" class="btn-accent btn btn-lg">
+            <i class="bi bi-grid-1x2-fill"></i> Go to Dashboard
+          </a>
+          <a href="{% url 'lostfound:found_items' %}" class="btn btn-lg" style="background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);">
+            <i class="bi bi-search"></i> Browse Found Items
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:register' %}" class="btn-accent btn btn-lg">
+            <i class="bi bi-person-plus-fill"></i> Get Started
+          </a>
+          <a href="{% url 'accounts:login' %}" class="btn btn-lg" style="background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);">
+            <i class="bi bi-box-arrow-in-right"></i> Sign In
+          </a>
+        {% endif %}
+      </div>
+      <div class="hero-stats mt-5">
+        <div class="hero-stat">
+          <div class="value">{{ stats.total_lost }}</div>
+          <div class="label"><i class="bi bi-search me-1"></i>Lost Reports</div>
+        </div>
+        <div class="hero-stat">
+          <div class="value">{{ stats.total_found }}</div>
+          <div class="label"><i class="bi bi-bag-check me-1"></i>Found Items</div>
+        </div>
+        <div class="hero-stat">
+          <div class="value">{{ stats.total_returned }}</div>
+          <div class="label"><i class="bi bi-check-circle me-1"></i>Reunited</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it Works ──────────────────────────────────────────── -->
+<section class="py-5" style="background:#fff;">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-800 text-primary-campus">How It Works</h2>
+      <p class="text-muted-campus">Three simple steps to reunite you with your belongings</p>
+    </div>
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="p-4">
+          <div class="mx-auto mb-3" style="width:72px;height:72px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--accent);">
+            <i class="bi bi-pencil-fill"></i>
+          </div>
+          <h5 class="fw-700 text-primary-campus">1. Report</h5>
+          <p class="text-muted-campus">Submit a detailed report of your lost item or something you found on campus.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-4">
+          <div class="mx-auto mb-3" style="width:72px;height:72px;background:var(--secondary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--primary);">
+            <i class="bi bi-shield-check-fill"></i>
+          </div>
+          <h5 class="fw-700 text-primary-campus">2. Verify</h5>
+          <p class="text-muted-campus">Admins verify reports to ensure authenticity and approve listings.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-4">
+          <div class="mx-auto mb-3" style="width:72px;height:72px;background:rgba(72,187,120,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--success);">
+            <i class="bi bi-hand-thumbs-up-fill"></i>
+          </div>
+          <h5 class="fw-700 text-primary-campus">3. Reunite</h5>
+          <p class="text-muted-campus">Submit a claim, get admin approval, and coordinate the return of your item.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Recent Items ───────────────────────────────────────────── -->
+{% if recent_items %}
+<section class="py-5" style="background:var(--bg);">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h2 class="fw-800 text-primary-campus mb-1">Recent Reports</h2>
+        <p class="text-muted-campus mb-0">Latest items reported on campus</p>
+      </div>
+      {% if user.is_authenticated %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'lostfound:lost_items' %}" class="btn-outline-campus">View All Lost</a>
+          <a href="{% url 'lostfound:found_items' %}" class="btn-accent">View All Found</a>
+        </div>
+      {% endif %}
+    </div>
+    <div class="row g-3">
+      {% for item in recent_items %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="item-card">
+          {% if item.image %}
+            <img src="{{ item.image.url }}" class="item-card-img" alt="{{ item.name }}">
+          {% else %}
+            <div class="item-card-img-placeholder">
+              {% if item.report_type == 'LOST' %}
+                <i class="bi bi-search"></i>
+              {% else %}
+                <i class="bi bi-bag-check-fill"></i>
+              {% endif %}
+            </div>
+          {% endif %}
+          <div class="item-card-body">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              {% if item.report_type == 'LOST' %}
+                <span class="badge-lost"><i class="bi bi-search me-1"></i>LOST</span>
+              {% else %}
+                <span class="badge-found"><i class="bi bi-bag-check me-1"></i>FOUND</span>
+              {% endif %}
+              <span class="text-muted-campus" style="font-size:.75rem;">{{ item.category.name }}</span>
+            </div>
+            <div class="item-card-title">{{ item.name }}</div>
+            <div class="item-card-meta"><i class="bi bi-geo-alt"></i> {{ item.location }}</div>
+            <div class="item-card-desc">{{ item.description }}</div>
+          </div>
+          <div class="item-card-footer">
+            <span class="text-muted-campus" style="font-size:.8rem;"><i class="bi bi-clock me-1"></i>{{ item.created_at|timesince }} ago</span>
+            {% if user.is_authenticated %}
+              <a href="{% url 'lostfound:item_detail' item.pk %}" class="btn-accent" style="padding:5px 14px;font-size:.8rem;">View</a>
+            {% else %}
+              <a href="{% url 'accounts:login' %}" class="btn-accent" style="padding:5px 14px;font-size:.8rem;">Login to View</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── CTA ───────────────────────────────────────────────────── -->
+{% if not user.is_authenticated %}
+<section class="py-5" style="background:linear-gradient(135deg,var(--primary),var(--accent));">
+  <div class="container text-center text-white">
+    <h2 class="fw-800 mb-3">Join Your Campus Community</h2>
+    <p class="mb-4" style="opacity:.85;">Register with your college credentials to report and find items.</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-light fw-700 px-5 py-3">
+      <i class="bi bi-person-plus-fill me-2"></i>Create Your Account
+    </a>
+  </div>
+</section>
+{% endif %}
+
+<!-- Footer -->
+<footer style="background:var(--primary);color:rgba(255,255,255,.6);padding:2rem;text-align:center;font-size:.875rem;">
+  <p class="mb-0"><i class="bi bi-search-heart-fill me-2" style="color:var(--accent);"></i>
+  Campus Lost &amp; Found &copy; {% now "Y" %}. Built with Django &amp; MySQL.</p>
+</footer>
+{% endblock %}

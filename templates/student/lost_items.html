@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Lost Items — Campus Lost & Found{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-search me-2" style="color:var(--danger);"></i>Lost Items</h1>
+  <p class="text-muted-campus">Items reported as lost by students. Help reunite them!</p>
+</div>
+
+<!-- Search Panel -->
+<div class="search-panel">
+  <form method="get" class="form-campus search-form">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label mb-1" style="font-size:.8rem;">Search</label>
+        {{ form.q }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:.8rem;">Category</label>
+        {{ form.category }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:.8rem;">Location</label>
+        {{ form.location }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:.8rem;">Sort</label>
+        {{ form.sort }}
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn-primary-campus w-100"><i class="bi bi-search"></i> Search</button>
+      </div>
+    </div>
+    <div class="row g-2 mt-1">
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:.8rem;">From Date</label>
+        {{ form.date_from }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:.8rem;">To Date</label>
+        {{ form.date_to }}
+      </div>
+      <div class="col-auto">
+        <a href="{% url 'lostfound:lost_items' %}" class="btn btn-outline-secondary">Clear</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted-campus">{{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }} found</span>
+  <a href="{% url 'lostfound:report_lost' %}" class="btn-primary-campus"><i class="bi bi-plus-circle me-1"></i>Report Lost Item</a>
+</div>
+
+{% if page_obj.object_list %}
+  <div class="row g-3 mb-4">
+    {% for item in page_obj %}
+    <div class="col-sm-6 col-lg-4 col-xl-3">
+      <div class="item-card">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" class="item-card-img" alt="{{ item.name }}">
+        {% else %}
+          <div class="item-card-img-placeholder"><i class="bi bi-search"></i></div>
+        {% endif %}
+        <div class="item-card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="badge-lost"><i class="bi bi-search me-1"></i>LOST</span>
+            <span class="text-muted-campus" style="font-size:.75rem;">{{ item.category.name }}</span>
+          </div>
+          <div class="item-card-title">{{ item.name }}</div>
+          <div class="item-card-meta"><i class="bi bi-geo-alt"></i> {{ item.location }}</div>
+          <div class="item-card-meta"><i class="bi bi-calendar"></i> {{ item.report_date|date:"M d, Y" }}</div>
+          <div class="item-card-desc mt-1">{{ item.description }}</div>
+        </div>
+        <div class="item-card-footer">
+          <span class="text-muted-campus" style="font-size:.8rem;">{{ item.created_at|timesince }} ago</span>
+          <a href="{% url 'lostfound:item_detail' item.pk %}" class="btn-accent" style="padding:5px 14px;font-size:.8rem;">View</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav>
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">‹ Prev</a></li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Next ›</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+{% else %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-search"></i></div>
+    <h4>No Lost Items Found</h4>
+    <p>Try adjusting your search filters or check back later.</p>
+    <a href="{% url 'lostfound:report_lost' %}" class="btn-primary-campus">Report a Lost Item</a>
+  </div>
+{% endif %}
+{% endblock %}

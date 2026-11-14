@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Login — Campus Lost & Found{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block full_page %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-circle"><i class="bi bi-search-heart-fill"></i></div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to access Campus Lost &amp; Found</p>
+    </div>
+    <form method="post" class="form-campus">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-campus mb-3">
+          <i class="bi bi-exclamation-triangle-fill"></i> {{ form.non_field_errors.0 }}
+        </div>
+      {% endif %}
+      <button type="submit" class="btn-primary-campus w-100 d-flex justify-content-center py-3">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+      </button>
+    </form>
+    <div class="text-center mt-4" style="font-size:.9rem;color:var(--text-muted);">
+      Don't have an account?
+      <a href="{% url 'accounts:register' %}" class="fw-600">Register here</a>
+    </div>
+    <div class="text-center mt-2">
+      <a href="/" style="font-size:.85rem;color:var(--text-light);">← Back to Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
