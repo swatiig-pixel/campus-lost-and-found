@@ -43,7 +43,8 @@ def login_view(request):
                 return redirect(next_url)
             return _redirect_by_role(user)
         else:
-            messages.error(request, 'Invalid username or password.')
+            error_msg = form.non_field_errors()[0] if form.non_field_errors() else 'Invalid username or password.'
+            messages.error(request, error_msg)
     else:
         form = StudentLoginForm()
 
@@ -54,7 +55,7 @@ def logout_view(request):
     """Logout and redirect to landing page."""
     logout(request)
     messages.info(request, 'You have been logged out.')
-    return redirect('landing')
+    return redirect('lostfound:landing')
 
 
 @login_required

@@ -262,6 +262,11 @@ def my_claims(request):
 @login_required
 def notifications_view(request):
     """List notifications for the current user."""
+    # Handle AJAX unread count polling
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({'unread_count': unread_count})
+
     notifs = Notification.objects.filter(
         user=request.user
     ).select_related('related_item', 'related_claim').order_by('-created_at')

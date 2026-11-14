@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Manage Claims — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-clipboard-check-fill text-accent me-2"></i>Ownership Claims Verification
+    </h1>
+    <p class="text-muted-campus mb-0">Evaluate student proof of ownership, prevent fraud, approve genuine claims, and oversee handovers.</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card-campus mb-4">
+  <div class="card-body-campus p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by item name, claimant username or full name...">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="status" class="form-select">
+          <option value="">All Claim Statuses</option>
+          <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending Review Only</option>
+          <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved Claims</option>
+          <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected Claims</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-campus flex-grow-1">Filter</button>
+        {% if q or status_filter %}
+          <a href="{% url 'lostfound:admin_claims' %}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Claims Table -->
+<div class="card-campus">
+  <div class="card-header-campus d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-journal-check me-2 text-accent"></i>Claims Pipeline ({{ page_obj.paginator.count }})</h6>
+  </div>
+  <div class="card-body-campus p-0">
+    {% if page_obj %}
+      <div class="table-responsive">
+        <table class="table-campus w-100">
+          <thead>
+            <tr>
+              <th>Claim ID</th>
+              <th>Target Item</th>
+              <th>Claimant</th>
+              <th>Status</th>
+              <th>Admin Remarks</th>
+              <th>Reviewed By</th>
+              <th>Submitted</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for claim in page_obj %}
+              <tr>
+                <td class="font-monospace fw-bold">#{{ claim.pk }}</td>
+                <td>
+                  <a href="{% url 'lostfound:admin_claim_detail' claim.pk %}" class="fw-bold text-primary-campus d-flex align-items-center gap-2">
+                    {% if claim.item.image %}
+                      <img src="{{ claim.item.image.url }}" alt="{{ claim.item.name }}" class="rounded" style="width:32px;height:32px;object-fit:cover;">
+                    {% else %}
+                      <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted" style="width:32px;height:32px;">
+                        <i class="bi bi-image"></i>
+                      </div>
+                    {% endif %}
+                    <span>{{ claim.item.name|truncatechars:28 }}</span>
+                  </a>
+                </td>
+                <td>
+                  <a href="{% url 'dashboard:admin_student_detail' claim.claimant.pk %}" class="text-dark fw-semibold">
+                    {{ claim.claimant.full_name|default:claim.claimant.username }}
+                  </a>
+                  <div class="small text-muted-campus font-monospace">{{ claim.claimant.usn|default:"No USN" }}</div>
+                </td>
+                <td>
+                  {% if claim.status == 'PENDING' %}
+                    <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                  {% elif claim.status == 'APPROVED' %}
+                    <span class="badge-approved"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                  {% else %}
+                    <span class="badge-rejected"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted-campus" style="max-width:200px;">
+                  {{ claim.admin_remarks|truncatechars:40|default:"—" }}
+                </td>
+                <td class="small">{{ claim.reviewed_by.username|default:"—" }}</td>
+                <td class="text-muted-campus small">{{ claim.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                  <a href="{% url 'lostfound:admin_claim_detail' claim.pk %}" class="btn btn-campus btn-sm py-0 px-2">
+                    Inspect Claim
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <div class="p-3 d-flex justify-content-center border-top">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a></li>
+              {% endif %}
+              {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endfor %}
+              {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <i class="bi bi-clipboard-x text-muted fs-1 mb-2"></i>
+        <h5 class="fw-bold">No claims found</h5>
+        <p class="text-muted-campus mb-0">No student claims match your selected filters.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

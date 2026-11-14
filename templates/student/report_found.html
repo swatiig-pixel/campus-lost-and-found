@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Report Found Item — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold text-primary-campus mb-1">
+          <i class="bi bi-hand-thumbs-up-fill text-accent me-2"></i>Report a Found Item
+        </h1>
+        <p class="text-muted-campus mb-0">Help a fellow student by reporting an item you found on campus.</p>
+      </div>
+      <a href="{% url 'lostfound:found_items' %}" class="btn btn-outline-campus btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Listings
+      </a>
+    </div>
+
+    <div class="card-campus">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-pencil-square me-2 text-accent"></i>Item Details</h6>
+      </div>
+      <div class="card-body-campus p-4">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="report_type" value="FOUND">
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-campus mb-3">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">Item Name <span class="text-danger">*</span></label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+            {% endif %}
+            <div class="form-text">e.g., "Silver Casio Scientific Calculator", "Black Noise Earbuds Case".</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+              {{ form.category }}
+              {% if form.category.errors %}
+                <div class="text-danger small mt-1">{{ form.category.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.report_date.id_for_label }}" class="form-label fw-semibold">Date Found <span class="text-danger">*</span></label>
+              {{ form.report_date }}
+              {% if form.report_date.errors %}
+                <div class="text-danger small mt-1">{{ form.report_date.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.location.id_for_label }}" class="form-label fw-semibold">Found Location <span class="text-danger">*</span></label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="text-danger small mt-1">{{ form.location.errors|striptags }}</div>
+            {% endif %}
+            <div class="form-text">Where did you find this item? (e.g., "Cafeteria Table 14", "Mechanical Workshop").</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+            {% endif %}
+            <div class="form-text">General description. <em>Tip: Do not disclose confidential ownership details (e.g., exact cash amount, serial numbers) to prevent fraudulent claims.</em></div>
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">Item Photograph (Optional)</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+              <div class="text-danger small mt-1">{{ form.image.errors|striptags }}</div>
+            {% endif %}
+            <div class="form-text">Supported formats: JPG, PNG, WebP, GIF. Maximum file size: 5 MB.</div>
+            <div class="mt-2 text-center" style="max-width: 250px;">
+              <img id="image-preview" src="#" alt="Preview" class="img-fluid rounded border shadow-sm" style="display:none; max-height: 180px; object-fit: contain;">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% url 'lostfound:my_reports' %}" class="btn btn-outline-campus">Cancel</a>
+            <button type="submit" class="btn btn-campus">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i>Submit Found Report
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

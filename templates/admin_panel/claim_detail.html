@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Review Claim #{{ claim.pk }} — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-shield-check text-accent me-2"></i>Review Ownership Claim #{{ claim.pk }}
+    </h1>
+    <p class="text-muted-campus mb-0">Evaluate the claimant's evidence against the item record to approve or reject this claim.</p>
+  </div>
+  <a href="{% url 'lostfound:admin_claims' %}" class="btn btn-outline-campus btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to All Claims
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Claim Evidence & Item Details -->
+  <div class="col-lg-8">
+    <!-- Ownership Evidence Card -->
+    <div class="card-campus mb-4 border-primary">
+      <div class="card-header-campus d-flex justify-content-between align-items-center bg-light">
+        <h6 class="mb-0 text-primary-campus"><i class="bi bi-key-fill me-2 text-warning"></i>Submitted Proof of Ownership</h6>
+        <div>
+          {% if claim.status == 'PENDING' %}
+            <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pending Review</span>
+          {% elif claim.status == 'APPROVED' %}
+            <span class="badge-approved"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+          {% else %}
+            <span class="badge-rejected"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body-campus p-4">
+        <div class="mb-4">
+          <label class="form-label text-muted-campus small fw-bold text-uppercase">Claim Description</label>
+          <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-wrap;">{{ claim.description }}</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-muted-campus small fw-bold text-uppercase">
+            <i class="bi bi-lock-fill text-danger me-1"></i>Confidential Identifying Evidence
+          </label>
+          <div class="p-3 bg-warning-subtle rounded border border-warning text-dark" style="white-space: pre-wrap; font-size:1.02rem;">{{ claim.identifying_details }}</div>
+          <div class="small text-muted-campus mt-1">
+            <i class="bi bi-info-circle me-1"></i>Verify that serial numbers, unique marks, lockscreen passwords, or inside items match the genuine physical property.
+          </div>
+        </div>
+
+        <div class="row g-3 text-muted-campus small border-top pt-3">
+          <div class="col-sm-6">
+            <span>Submitted: <strong>{{ claim.created_at|date:"F d, Y H:i" }}</strong></span>
+          </div>
+          {% if claim.reviewed_by %}
+            <div class="col-sm-6 text-sm-end">
+              <span>Reviewed by <strong>{{ claim.reviewed_by.username }}</strong> on {{ claim.reviewed_at|date:"M d, Y H:i" }}</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Target Item Details Card -->
+    <div class="card-campus mb-4">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-box-seam me-2 text-accent"></i>Claimed Item Information</h6>
+        <a href="{% url 'lostfound:admin_item_action' claim.item.pk %}" class="btn btn-outline-campus btn-sm py-0 px-2" style="font-size:.8rem;">
+          Open Item Details
+        </a>
+      </div>
+      <div class="card-body-campus p-4">
+        <div class="row g-4 align-items-center">
+          {% if claim.item.image %}
+            <div class="col-md-4 text-center">
+              <img src="{{ claim.item.image.url }}" alt="{{ claim.item.name }}" class="img-fluid rounded border shadow-sm" style="max-height:180px;object-fit:contain;">
+            </div>
+          {% endif %}
+          <div class="{% if claim.item.image %}col-md-8{% else %}col-12{% endif %}">
+            <h5 class="fw-bold text-primary-campus mb-1">{{ claim.item.name }}</h5>
+            <div class="d-flex flex-wrap gap-2 text-muted-campus small mb-3">
+              <span class="badge bg-light text-dark border">{{ claim.item.category.name }}</span>
+              <span>&bull;</span>
+              <span><i class="bi bi-geo-alt me-1"></i>{{ claim.item.location }}</span>
+              <span>&bull;</span>
+              <span><i class="bi bi-calendar me-1"></i>{{ claim.item.report_date|date:"M d, Y" }}</span>
+            </div>
+            <div class="p-3 bg-light rounded text-dark small" style="white-space: pre-wrap;">{{ claim.item.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Decision Form & Profiles -->
+  <div class="col-lg-4">
+    <!-- Admin Decision Form -->
+    <div class="card-campus mb-4 border-accent">
+      <div class="card-header-campus bg-light">
+        <h6 class="mb-0 text-primary-campus"><i class="bi bi-gavel me-2 text-accent"></i>Administrative Decision</h6>
+      </div>
+      <div class="card-body-campus p-3">
+        {% if claim.status == 'PENDING' %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="admin_remarks" class="form-label small fw-semibold">Decision Remarks</label>
+              <textarea name="admin_remarks" id="admin_remarks" rows="3" class="form-control" placeholder="Add remarks for approval, or explain reasons for rejection (sent to student)..."></textarea>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" name="action" value="approve" class="btn btn-success" onclick="return confirm('APPROVE this claim? This will automatically mark the item as CLAIMED, reject competing pending claims, and notify both parties.')">
+                <i class="bi bi-check-circle-fill me-1"></i>Approve Claim
+              </button>
+              <button type="submit" name="action" value="reject" class="btn btn-danger" onclick="return confirm('REJECT this claim? The student will be notified.')">
+                <i class="bi bi-x-circle-fill me-1"></i>Reject Claim
+              </button>
+            </div>
+          </form>
+        {% else %}
+          <div class="alert {% if claim.status == 'APPROVED' %}alert-success{% else %}alert-danger{% endif %} mb-0">
+            <strong>Decision Rendered:</strong> This claim is <strong>{{ claim.get_status_display }}</strong>.
+            {% if claim.admin_remarks %}
+              <div class="mt-2 small"><strong>Remarks:</strong> {{ claim.admin_remarks }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Claimant Profile -->
+    <div class="card-campus mb-4">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-person-fill me-2 text-accent"></i>Claimant Profile</h6>
+      </div>
+      <div class="card-body-campus p-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="user-avatar" style="width:40px;height:40px;font-size:1rem;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">
+            {{ claim.claimant.full_name|first|upper|default:claim.claimant.username|first|upper }}
+          </div>
+          <div>
+            <div class="fw-bold">{{ claim.claimant.full_name|default:claim.claimant.username }}</div>
+            <div class="small text-muted-campus font-monospace">{{ claim.claimant.usn|default:"No USN" }}</div>
+          </div>
+        </div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Department:</span>
+            <span>{{ claim.claimant.department|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Email:</span>
+            <span>{{ claim.claimant.email }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Phone:</span>
+            <span>{{ claim.claimant.phone_number|default:"—" }}</span>
+          </li>
+        </ul>
+        <div class="mt-2">
+          <a href="{% url 'dashboard:admin_student_detail' claim.claimant.pk %}" class="btn btn-outline-campus btn-sm w-100">
+            View Claimant Profile
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Reporter (Finder) Profile -->
+    <div class="card-campus">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-person-badge me-2 text-accent"></i>Found Item Reporter</h6>
+      </div>
+      <div class="card-body-campus p-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="user-avatar" style="width:40px;height:40px;font-size:1rem;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">
+            {{ claim.item.user.full_name|first|upper|default:claim.item.user.username|first|upper }}
+          </div>
+          <div>
+            <div class="fw-bold">{{ claim.item.user.full_name|default:claim.item.user.username }}</div>
+            <div class="small text-muted-campus font-monospace">{{ claim.item.user.usn|default:"No USN" }}</div>
+          </div>
+        </div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Department:</span>
+            <span>{{ claim.item.user.department|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Email:</span>
+            <span>{{ claim.item.user.email }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-1">
+            <span class="text-muted-campus">Phone:</span>
+            <span>{{ claim.item.user.phone_number|default:"—" }}</span>
+          </li>
+        </ul>
+        <div class="mt-2">
+          <a href="{% url 'dashboard:admin_student_detail' claim.item.user.pk %}" class="btn btn-outline-campus btn-sm w-100">
+            View Reporter Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Student: {{ student.username }} — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-person-badge-fill text-accent me-2"></i>Student Profile Details
+    </h1>
+    <p class="text-muted-campus mb-0">Detailed record, account status, and platform activity history.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'dashboard:admin_students' %}" class="btn btn-outline-campus btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back to Student List
+    </a>
+    <form method="post" action="{% url 'dashboard:admin_toggle_student' student.pk %}" class="d-inline">
+      {% csrf_token %}
+      {% if student.is_active %}
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Deactivate student account for {{ student.username }}?')">
+          <i class="bi bi-person-x me-1"></i>Deactivate Account
+        </button>
+      {% else %}
+        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Activate student account for {{ student.username }}?')">
+          <i class="bi bi-person-check me-1"></i>Activate Account
+        </button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Profile Information Card -->
+  <div class="col-lg-4">
+    <div class="card-campus h-100">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-info-circle-fill me-2 text-accent"></i>Account Details</h6>
+      </div>
+      <div class="card-body-campus p-4 text-center">
+        <div class="user-avatar mx-auto mb-3" style="width:72px;height:72px;font-size:1.8rem;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">
+          {{ student.full_name|first|upper|default:student.username|first|upper }}
+        </div>
+        <h5 class="fw-bold text-primary-campus mb-1">{{ student.full_name|default:student.username }}</h5>
+        <div class="text-muted-campus mb-3">@{{ student.username }}</div>
+
+        <div class="mb-3">
+          {% if student.is_active %}
+            <span class="badge bg-success-subtle text-success px-3 py-1"><i class="bi bi-check-circle me-1"></i>Active Account</span>
+          {% else %}
+            <span class="badge bg-danger-subtle text-danger px-3 py-1"><i class="bi bi-slash-circle me-1"></i>Deactivated Account</span>
+          {% endif %}
+        </div>
+
+        <ul class="list-group list-group-flush text-start small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">USN:</span>
+            <span class="fw-bold font-monospace">{{ student.usn|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Email:</span>
+            <span class="fw-semibold">{{ student.email }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Phone:</span>
+            <span class="fw-semibold">{{ student.phone_number|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Department:</span>
+            <span class="fw-semibold">{{ student.department|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Semester:</span>
+            <span class="fw-semibold">{% if student.semester %}Semester {{ student.semester }}{% else %}—{% endif %}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Registered:</span>
+            <span class="fw-semibold">{{ student.date_joined|date:"M d, Y" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Last Login:</span>
+            <span class="fw-semibold">{{ student.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Tabs (Items & Claims) -->
+  <div class="col-lg-8">
+    <div class="card-campus mb-4">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-collection-fill me-2 text-accent"></i>Reported Items ({{ items.count }})</h6>
+      </div>
+      <div class="card-body-campus p-0">
+        {% if items %}
+          <div class="table-responsive">
+            <table class="table-campus w-100">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Verification</th>
+                  <th>Lifecycle</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'lostfound:admin_item_action' item.pk %}" class="fw-semibold text-primary-campus">
+                        {{ item.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if item.report_type == 'LOST' %}<span class="badge-lost">Lost</span>
+                      {% else %}<span class="badge-found">Found</span>{% endif %}
+                    </td>
+                    <td>{{ item.category.name }}</td>
+                    <td>
+                      {% if item.verification_status == 'PENDING' %}<span class="badge-pending">Pending</span>
+                      {% elif item.verification_status == 'APPROVED' %}<span class="badge-approved">Approved</span>
+                      {% else %}<span class="badge-rejected">Rejected</span>{% endif %}
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ item.get_status_display }}</span></td>
+                    <td class="text-muted-campus small">{{ item.created_at|date:"M d, Y" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4 text-muted-campus small">No reported items by this student.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-campus">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-clipboard-check-fill me-2 text-accent"></i>Submitted Claims ({{ claims.count }})</h6>
+      </div>
+      <div class="card-body-campus p-0">
+        {% if claims %}
+          <div class="table-responsive">
+            <table class="table-campus w-100">
+              <thead>
+                <tr>
+                  <th>Claim ID</th>
+                  <th>Target Item</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for claim in claims %}
+                  <tr>
+                    <td class="font-monospace">#{{ claim.pk }}</td>
+                    <td>
+                      <a href="{% url 'lostfound:admin_claim_detail' claim.pk %}" class="fw-semibold text-primary-campus">
+                        {{ claim.item.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if claim.status == 'PENDING' %}<span class="badge-pending">Pending</span>
+                      {% elif claim.status == 'APPROVED' %}<span class="badge-approved">Approved</span>
+                      {% else %}<span class="badge-rejected">Rejected</span>{% endif %}
+                    </td>
+                    <td class="text-muted-campus small">{{ claim.created_at|date:"M d, Y" }}</td>
+                    <td class="text-end">
+                      <a href="{% url 'lostfound:admin_claim_detail' claim.pk %}" class="btn btn-outline-campus btn-sm py-0 px-2">
+                        Inspect
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4 text-muted-campus small">No claims submitted by this student.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

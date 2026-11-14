@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}My Claims — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-clipboard-check-fill text-accent me-2"></i>My Ownership Claims
+    </h1>
+    <p class="text-muted-campus mb-0">Track verification status and updates for your submitted item claims.</p>
+  </div>
+  <a href="{% url 'lostfound:found_items' %}" class="btn btn-campus btn-sm">
+    <i class="bi bi-search me-1"></i>Browse Found Items
+  </a>
+</div>
+
+<div class="card-campus">
+  <div class="card-header-campus d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-journal-text me-2 text-accent"></i>Claims History ({{ claims.count }})</h6>
+  </div>
+  <div class="card-body-campus p-0">
+    {% if claims %}
+      <div class="table-responsive">
+        <table class="table-campus w-100">
+          <thead>
+            <tr>
+              <th>Claimed Item</th>
+              <th>Category</th>
+              <th>Submitted Date</th>
+              <th>Claim Status</th>
+              <th>Admin Review</th>
+              <th>Handover / Contact</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for claim in claims %}
+              <tr>
+                <td>
+                  <a href="{% url 'lostfound:item_detail' claim.item.pk %}" class="fw-bold text-primary-campus d-flex align-items-center gap-2">
+                    {% if claim.item.image %}
+                      <img src="{{ claim.item.image.url }}" alt="{{ claim.item.name }}" class="rounded" style="width:36px;height:36px;object-fit:cover;">
+                    {% else %}
+                      <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted" style="width:36px;height:36px;">
+                        <i class="bi bi-image"></i>
+                      </div>
+                    {% endif %}
+                    <span>{{ claim.item.name }}</span>
+                  </a>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ claim.item.category.name }}</span></td>
+                <td class="text-muted-campus small">{{ claim.created_at|date:"M d, Y" }}</td>
+                <td>
+                  {% if claim.status == 'PENDING' %}
+                    <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Under Review</span>
+                  {% elif claim.status == 'APPROVED' %}
+                    <span class="badge-approved"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                  {% else %}
+                    <span class="badge-rejected"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                  {% endif %}
+                </td>
+                <td style="max-width:200px;">
+                  {% if claim.admin_remarks %}
+                    <span class="small text-muted-campus">{{ claim.admin_remarks }}</span>
+                  {% elif claim.status == 'PENDING' %}
+                    <span class="small text-muted-campus fst-italic">Awaiting admin review</span>
+                  {% else %}
+                    <span class="small text-muted-campus fst-italic">No remarks</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if claim.status == 'APPROVED' %}
+                    <a href="{% url 'lostfound:message_conversation' claim.item.pk claim.item.user.pk %}" class="btn btn-accent btn-sm">
+                      <i class="bi bi-chat-dots-fill me-1"></i>Chat with Finder
+                    </a>
+                  {% else %}
+                    <span class="small text-muted-campus fst-italic">Available after approval</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'lostfound:item_detail' claim.item.pk %}" class="btn btn-outline-secondary btn-sm" title="View Item">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon text-muted mb-3" style="font-size:3rem;"><i class="bi bi-clipboard"></i></div>
+        <h5 class="fw-bold">No claims submitted yet</h5>
+        <p class="text-muted-campus mb-4">If you see an item in Found listings that belongs to you, you can submit a claim with proof of ownership.</p>
+        <a href="{% url 'lostfound:found_items' %}" class="btn btn-campus btn-sm">
+          <i class="bi bi-search me-1"></i>Browse Found Items
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

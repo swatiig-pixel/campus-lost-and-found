@@ -108,11 +108,12 @@ class StudentLoginForm(forms.Form):
         username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         if username and password:
+            user = User.objects.filter(username=username).first()
+            if user and not user.is_active and user.check_password(password):
+                raise forms.ValidationError('This account has been deactivated.')
             self.user = authenticate(username=username, password=password)
             if self.user is None:
                 raise forms.ValidationError('Invalid username or password.')
-            if not self.user.is_active:
-                raise forms.ValidationError('This account has been deactivated.')
         return cleaned_data
 
     def get_user(self):

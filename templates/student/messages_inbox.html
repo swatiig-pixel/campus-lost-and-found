@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Messages — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold text-primary-campus mb-1">
+          <i class="bi bi-chat-dots-fill text-accent me-2"></i>Handover Messages
+        </h1>
+        <p class="text-muted-campus mb-0">Coordinate physical return and collection of claimed items with students securely.</p>
+      </div>
+    </div>
+
+    <div class="card-campus">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-chat-left-text me-2 text-accent"></i>Active Conversations</h6>
+        <span class="badge bg-light text-dark border">{{ conversations|length }} Active</span>
+      </div>
+      <div class="card-body-campus p-0">
+        {% if conversations %}
+          <div class="list-group list-group-flush">
+            {% for convo in conversations %}
+              <a href="{% url 'lostfound:message_conversation' convo.item.pk convo.other_user.pk %}" 
+                 class="list-group-item list-group-item-action p-3 d-flex align-items-center justify-content-between border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="user-avatar" style="width:46px;height:46px;font-size:1.1rem;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                    {{ convo.other_user.full_name|first|upper|default:convo.other_user.username|first|upper }}
+                  </div>
+                  <div>
+                    <div class="d-flex align-items-center gap-2">
+                      <h6 class="mb-0 fw-bold text-primary-campus">{{ convo.other_user.full_name|default:convo.other_user.username }}</h6>
+                      <span class="badge bg-light text-dark border small">{{ convo.other_user.department|default:"Student" }}</span>
+                    </div>
+                    <div class="small text-muted-campus mt-1">
+                      <i class="bi bi-box-seam me-1"></i><strong>Regarding:</strong> {{ convo.item.name }}
+                    </div>
+                    <p class="small text-secondary mb-0 text-truncate" style="max-width:400px;">
+                      {% if convo.last_message.sender == user %}<span class="text-muted">You:</span> {% endif %}
+                      {{ convo.last_message.message_text|truncatechars:60 }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-end">
+                  <div class="small text-muted-campus mb-1">{{ convo.last_message.created_at|timesince }} ago</div>
+                  {% if convo.unread_count > 0 %}
+                    <span class="badge bg-danger rounded-pill">{{ convo.unread_count }} new</span>
+                  {% else %}
+                    <i class="bi bi-chevron-right text-muted"></i>
+                  {% endif %}
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon text-muted mb-3" style="font-size:3rem;"><i class="bi bi-chat-square-dots"></i></div>
+            <h5 class="fw-bold">No active conversations</h5>
+            <p class="text-muted-campus mb-0">
+              When an item claim is approved by an administrator, you and the finder can communicate here to coordinate safe item handover on campus.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

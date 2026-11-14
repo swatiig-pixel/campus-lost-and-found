@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold text-primary-campus mb-1">
+          <i class="bi bi-bell-fill text-accent me-2"></i>Notifications
+        </h1>
+        <p class="text-muted-campus mb-0">Stay informed about your item reports, claims, and handover messages.</p>
+      </div>
+    </div>
+
+    <div class="card-campus">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-2 text-accent"></i>Recent Updates</h6>
+        <span class="badge bg-light text-dark border">{{ page_obj.paginator.count }} Total</span>
+      </div>
+      <div class="card-body-campus p-0">
+        {% if page_obj %}
+          <div class="list-group list-group-flush">
+            {% for notif in page_obj %}
+              <div class="list-group-item p-3 border-bottom d-flex align-items-start gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+                     style="width:42px;height:42px;
+                     {% if notif.notification_type == 'ITEM_APPROVED' or notif.notification_type == 'CLAIM_APPROVED' or notif.notification_type == 'ITEM_RETURNED' %}
+                       background: var(--accent-light); color: var(--accent);
+                     {% elif notif.notification_type == 'ITEM_REJECTED' or notif.notification_type == 'CLAIM_REJECTED' %}
+                       background: #fee2e2; color: var(--danger);
+                     {% elif notif.notification_type == 'MESSAGE_RECEIVED' %}
+                       background: #e0e7ff; color: #4338ca;
+                     {% else %}
+                       background: var(--secondary); color: var(--primary);
+                     {% endif %}">
+                  {% if notif.notification_type == 'ITEM_APPROVED' %}
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                  {% elif notif.notification_type == 'ITEM_REJECTED' %}
+                    <i class="bi bi-x-circle-fill fs-5"></i>
+                  {% elif notif.notification_type == 'CLAIM_APPROVED' %}
+                    <i class="bi bi-clipboard-check-fill fs-5"></i>
+                  {% elif notif.notification_type == 'CLAIM_REJECTED' %}
+                    <i class="bi bi-clipboard-x-fill fs-5"></i>
+                  {% elif notif.notification_type == 'ITEM_RETURNED' %}
+                    <i class="bi bi-box2-heart-fill fs-5"></i>
+                  {% elif notif.notification_type == 'MESSAGE_RECEIVED' %}
+                    <i class="bi bi-chat-dots-fill fs-5"></i>
+                  {% else %}
+                    <i class="bi bi-bell-fill fs-5"></i>
+                  {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-light text-secondary border small">{{ notif.get_notification_type_display }}</span>
+                    <span class="text-muted-campus small">{{ notif.created_at|date:"M d, Y H:i" }}</span>
+                  </div>
+                  <p class="mb-2 text-dark">{{ notif.message }}</p>
+                  <div class="d-flex gap-2">
+                    {% if notif.related_item %}
+                      <a href="{% url 'lostfound:item_detail' notif.related_item.pk %}" class="btn btn-outline-campus btn-sm py-0 px-2" style="font-size:.8rem;">
+                        <i class="bi bi-box-seam me-1"></i>View Item
+                      </a>
+                    {% endif %}
+                    {% if notif.notification_type == 'CLAIM_APPROVED' or notif.notification_type == 'CLAIM_SUBMITTED' %}
+                      <a href="{% url 'lostfound:my_claims' %}" class="btn btn-outline-campus btn-sm py-0 px-2" style="font-size:.8rem;">
+                        <i class="bi bi-clipboard me-1"></i>My Claims
+                      </a>
+                    {% endif %}
+                    {% if notif.notification_type == 'MESSAGE_RECEIVED' %}
+                      <a href="{% url 'lostfound:messages_inbox' %}" class="btn btn-accent btn-sm py-0 px-2" style="font-size:.8rem;">
+                        <i class="bi bi-chat-dots me-1"></i>Open Inbox
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if page_obj.has_other_pages %}
+            <div class="p-3 d-flex justify-content-center">
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                  {% endif %}
+                  {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                  {% endfor %}
+                  {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                  {% endif %}
+                </ul>
+              </nav>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon text-muted mb-3" style="font-size:3rem;"><i class="bi bi-bell-slash"></i></div>
+            <h5 class="fw-bold">No notifications</h5>
+            <p class="text-muted-campus mb-0">You are all caught up! You will be notified when your items or claims have updates.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

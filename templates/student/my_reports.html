@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}My Reports — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-collection-fill text-accent me-2"></i>My Reported Items
+    </h1>
+    <p class="text-muted-campus mb-0">Manage all items you have reported as lost or found on campus.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'lostfound:report_lost' %}" class="btn btn-campus btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Report Lost Item
+    </a>
+    <a href="{% url 'lostfound:report_found' %}" class="btn btn-accent btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Report Found Item
+    </a>
+  </div>
+</div>
+
+<div class="card-campus">
+  <div class="card-header-campus d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-list-ul me-2 text-accent"></i>Submission History ({{ items.count }})</h6>
+  </div>
+  <div class="card-body-campus p-0">
+    {% if items %}
+      <div class="table-responsive">
+        <table class="table-campus w-100">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Incident Date</th>
+              <th>Verification</th>
+              <th>Lifecycle Status</th>
+              <th>Date Submitted</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td>
+                  <a href="{% url 'lostfound:item_detail' item.pk %}" class="fw-bold text-primary-campus d-flex align-items-center gap-2">
+                    {% if item.image %}
+                      <img src="{{ item.image.url }}" alt="{{ item.name }}" class="rounded" style="width:36px;height:36px;object-fit:cover;">
+                    {% else %}
+                      <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted" style="width:36px;height:36px;">
+                        <i class="bi bi-image"></i>
+                      </div>
+                    {% endif %}
+                    <span>{{ item.name }}</span>
+                  </a>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ item.category.name }}</span></td>
+                <td>
+                  {% if item.report_type == 'LOST' %}
+                    <span class="badge-lost">Lost</span>
+                  {% else %}
+                    <span class="badge-found">Found</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.report_date|date:"M d, Y" }}</td>
+                <td>
+                  {% if item.verification_status == 'PENDING' %}
+                    <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                  {% elif item.verification_status == 'APPROVED' %}
+                    <span class="badge-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                  {% else %}
+                    <span class="badge-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if item.status == 'ACTIVE' %}
+                    <span class="badge bg-success-subtle text-success">Active</span>
+                  {% elif item.status == 'CLAIMED' %}
+                    <span class="badge bg-warning-subtle text-warning">Claimed</span>
+                  {% elif item.status == 'RETURNED' %}
+                    <span class="badge bg-info-subtle text-info">Returned</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">Closed</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted-campus small">{{ item.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{% url 'lostfound:item_detail' item.pk %}" class="btn btn-outline-secondary" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    {% if item.verification_status == 'PENDING' %}
+                      <a href="{% url 'lostfound:edit_report' item.pk %}" class="btn btn-outline-primary" title="Edit Report">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <a href="{% url 'lostfound:delete_report' item.pk %}" class="btn btn-outline-danger" title="Delete Report">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon text-muted mb-3" style="font-size:3rem;"><i class="bi bi-inbox"></i></div>
+        <h5 class="fw-bold">No reports yet</h5>
+        <p class="text-muted-campus mb-4">You have not submitted any lost or found item reports.</p>
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{% url 'lostfound:report_lost' %}" class="btn btn-campus btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Report Lost Item
+          </a>
+          <a href="{% url 'lostfound:report_found' %}" class="btn btn-accent btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Report Found Item
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block title %}Moderate Item: {{ item.name }} — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold text-primary-campus mb-1">
+      <i class="bi bi-box-seam-fill text-accent me-2"></i>Item Moderation
+    </h1>
+    <p class="text-muted-campus mb-0">Review details, approve public listing, reject, or mark as officially returned.</p>
+  </div>
+  <a href="{% url 'lostfound:admin_items' %}" class="btn btn-outline-campus btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to All Items
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Item Details -->
+  <div class="col-lg-8">
+    <div class="card-campus mb-4">
+      <div class="card-header-campus d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          <span class="badge {% if item.report_type == 'LOST' %}badge-lost{% else %}badge-found{% endif %} me-2">
+            {{ item.report_type }}
+          </span>
+          {{ item.name }}
+        </h6>
+        <div>
+          {% if item.verification_status == 'PENDING' %}
+            <span class="badge-pending">Pending Verification</span>
+          {% elif item.verification_status == 'APPROVED' %}
+            <span class="badge-approved">Approved (Live)</span>
+          {% else %}
+            <span class="badge-rejected">Rejected</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body-campus p-4">
+        {% if item.image %}
+          <div class="mb-4 text-center">
+            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-fluid rounded border shadow-sm" style="max-height:350px;object-fit:contain;">
+          </div>
+        {% endif %}
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="text-muted-campus small">Category:</div>
+            <div class="fw-semibold">{{ item.category.name }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted-campus small">Incident Date:</div>
+            <div class="fw-semibold">{{ item.report_date|date:"F d, Y" }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted-campus small">Location:</div>
+            <div class="fw-semibold">{{ item.location }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted-campus small">Lifecycle Status:</div>
+            <div class="fw-semibold"><span class="badge bg-light text-dark border">{{ item.get_status_display }}</span></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="text-muted-campus small mb-1">Item Description:</div>
+          <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-wrap;">{{ item.description }}</div>
+        </div>
+
+        <div class="d-flex justify-content-between text-muted-campus small border-top pt-3">
+          <span>Submitted on: {{ item.created_at|date:"M d, Y H:i" }}</span>
+          <span>Last modified: {{ item.updated_at|date:"M d, Y H:i" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Audit History -->
+    <div class="card-campus">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-2 text-accent"></i>Audit Status History</h6>
+      </div>
+      <div class="card-body-campus p-0">
+        {% if item.status_history.exists %}
+          <div class="table-responsive">
+            <table class="table-campus w-100">
+              <thead>
+                <tr>
+                  <th>Old Status</th>
+                  <th>New Status</th>
+                  <th>Modified By</th>
+                  <th>Remarks</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for hist in item.status_history.all %}
+                  <tr>
+                    <td><span class="badge bg-light text-secondary border">{{ hist.old_status }}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary border">{{ hist.new_status }}</span></td>
+                    <td>{{ hist.changed_by.username|default:"System" }}</td>
+                    <td class="small">{{ hist.remarks|default:"—" }}</td>
+                    <td class="text-muted-campus small">{{ hist.changed_at|date:"M d, Y H:i" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-3 text-muted-campus small">No historical status modifications logged yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions & Reporter Info -->
+  <div class="col-lg-4">
+    <!-- Action Form -->
+    <div class="card-campus mb-4 border-accent">
+      <div class="card-header-campus bg-light">
+        <h6 class="mb-0 text-primary-campus"><i class="bi bi-shield-check me-2 text-accent"></i>Administrative Decision</h6>
+      </div>
+      <div class="card-body-campus p-3">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="remarks" class="form-label small fw-semibold">Administrative Remarks / Justification</label>
+            <textarea name="remarks" id="remarks" rows="3" class="form-control" placeholder="Required for rejection, optional for approval..."></textarea>
+          </div>
+
+          <div class="d-grid gap-2">
+            {% if item.verification_status != 'APPROVED' %}
+              <button type="submit" name="action" value="approve" class="btn btn-success">
+                <i class="bi bi-check-circle-fill me-1"></i>Approve Listing
+              </button>
+            {% endif %}
+
+            {% if item.verification_status != 'REJECTED' %}
+              <button type="submit" name="action" value="reject" class="btn btn-danger" onclick="return confirm('Reject this item report? The reporter will be notified.')">
+                <i class="bi bi-x-circle-fill me-1"></i>Reject Listing
+              </button>
+            {% endif %}
+
+            {% if item.status != 'RETURNED' %}
+              <button type="submit" name="action" value="returned" class="btn btn-info text-white" onclick="return confirm('Mark this item as officially RETURNED to owner?')">
+                <i class="bi bi-box2-heart-fill me-1"></i>Mark as Returned
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Reporter Profile Card -->
+    <div class="card-campus">
+      <div class="card-header-campus">
+        <h6 class="mb-0"><i class="bi bi-person-fill me-2 text-accent"></i>Reported By</h6>
+      </div>
+      <div class="card-body-campus p-3">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="user-avatar" style="width:48px;height:48px;font-size:1.1rem;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">
+            {{ item.user.full_name|first|upper|default:item.user.username|first|upper }}
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">{{ item.user.full_name|default:item.user.username }}</h6>
+            <div class="small text-muted-campus">@{{ item.user.username }}</div>
+          </div>
+        </div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">USN:</span>
+            <span class="fw-semibold font-monospace">{{ item.user.usn|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Department:</span>
+            <span class="fw-semibold">{{ item.user.department|default:"—" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Email:</span>
+            <span class="fw-semibold">{{ item.user.email }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0 py-2">
+            <span class="text-muted-campus">Phone:</span>
+            <span class="fw-semibold">{{ item.user.phone_number|default:"—" }}</span>
+          </li>
+        </ul>
+        <div class="mt-3">
+          <a href="{% url 'dashboard:admin_student_detail' item.user.pk %}" class="btn btn-outline-campus btn-sm w-100">
+            <i class="bi bi-person-lines-fill me-1"></i>View Student Record
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

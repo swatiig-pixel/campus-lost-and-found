@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Edit Report — Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold text-primary-campus mb-1">
+          <i class="bi bi-pencil-square text-accent me-2"></i>Edit Item Report
+        </h1>
+        <p class="text-muted-campus mb-0">Update report information for: <strong>{{ item.name }}</strong></p>
+      </div>
+      <a href="{% url 'lostfound:my_reports' %}" class="btn btn-outline-campus btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to My Reports
+      </a>
+    </div>
+
+    <div class="card-campus">
+      <div class="card-header-campus">
+        <h6 class="mb-0">
+          <span class="badge {% if item.report_type == 'LOST' %}badge-lost{% else %}badge-found{% endif %} me-2">
+            {{ item.report_type }}
+          </span>
+          Edit Report Details
+        </h6>
+      </div>
+      <div class="card-body-campus p-4">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-campus mb-3">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">Item Name <span class="text-danger">*</span></label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+              {{ form.category }}
+              {% if form.category.errors %}
+                <div class="text-danger small mt-1">{{ form.category.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.report_date.id_for_label }}" class="form-label fw-semibold">Date of Incident <span class="text-danger">*</span></label>
+              {{ form.report_date }}
+              {% if form.report_date.errors %}
+                <div class="text-danger small mt-1">{{ form.report_date.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.location.id_for_label }}" class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="text-danger small mt-1">{{ form.location.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">Replace Photograph (Optional)</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+              <div class="text-danger small mt-1">{{ form.image.errors|striptags }}</div>
+            {% endif %}
+            {% if item.image %}
+              <div class="mt-2 d-flex align-items-center gap-3">
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="rounded border" style="width:80px;height:80px;object-fit:cover;">
+                <span class="small text-muted-campus">Current photograph on file. Uploading a new image will replace it.</span>
+              </div>
+            {% endif %}
+            <div class="mt-2 text-center" style="max-width: 250px;">
+              <img id="image-preview" src="#" alt="Preview" class="img-fluid rounded border shadow-sm" style="display:none; max-height: 180px; object-fit: contain;">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% url 'lostfound:my_reports' %}" class="btn btn-outline-campus">Cancel</a>
+            <button type="submit" class="btn btn-campus">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@ Demonstrates: COUNT, GROUP BY, annotate, select_related, prefetch_related,
 aggregate functions, ordering, filtering.
 """
 from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 import datetime
 
@@ -45,12 +46,12 @@ def get_admin_dashboard_stats():
         .order_by('-count')[:5]
     )
 
-    # Monthly item reports (last 6 months)
+    # Monthly item reports (last 6 months) - portable across MySQL and SQLite
     six_months_ago = timezone.now().date() - datetime.timedelta(days=180)
     monthly_stats = (
         Item.objects
         .filter(created_at__date__gte=six_months_ago)
-        .extra(select={'month': "DATE_FORMAT(created_at, '%%Y-%%m')"})
+        .annotate(month=TruncMonth('created_at'))
         .values('month')
         .annotate(count=Count('id'))
         .order_by('month')
